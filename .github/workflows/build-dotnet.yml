@@ -104,3 +104,13 @@ jobs:
       with:
         name: dotnet-sdk-linux-riscv64
         path: "${{ github.workspace }}/output/dotnet-sdk-*-linux-riscv64.tar.gz*"
+    
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: ${{ github.ref_name }}
+        files: |
+          ${{ github.workspace }}/output/dotnet-sdk-*.tar.gz*
+          ${{ github.workspace }}/packages/*.nupkg
