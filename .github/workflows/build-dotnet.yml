@@ -14,9 +14,9 @@ jobs:
         PACKAGESDIR: ${{ github.workspace }}/packages
         DOWNLOADDIR: ${{ github.workspace }}/downloads
         OUTPUTDIR: ${{ github.workspace }}/output
-        RUNTIME_VERSION: 9.0.0-rtm.24528.9
-        SDK_VERSION: 9.0.100
-        ASPNETCORE_VERSION: 9.0.0-rtm.24529.3
+        RUNTIME_VERSION: 8.0.19
+        SDK_VERSION: 8.0.413
+        ASPNETCORE_VERSION: 8.0.19
         ROOTFS_DIR: /crossrootfs/riscv64
       volumes:
         - ${{ github.workspace }}:${{ github.workspace }}
