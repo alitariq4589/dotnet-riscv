@@ -1,6 +1,6 @@
 name: Build .NET SDK
 
-on: [workflow_dispatch, push]
+on: [workflow_dispatch, pull_request, push]
 
 jobs:
   run:
@@ -17,7 +17,7 @@ jobs:
         ROOTFS_DIR: /crossrootfs/riscv64
       volumes:
         - ${{ github.workspace }}/output:${{ github.workspace }}/output
-
+        
     steps:
     - name: Clone repositories
       run: |
@@ -28,12 +28,6 @@ jobs:
 
     - name: Update Node.js
       run: |
-        #!/bin/bash
-        set -x
-        curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg
-
-        # Add the repository source to a new file, referencing the new keyring file
-        echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/kitware.list
         apt-get update
         apt-get autoremove -y nodejs
         curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs
@@ -101,4 +95,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-sdk-linux-riscv64
-        path: "${{ github.workspace }}/output/*"
+        path: "${{ github.workspace }}/output/dotnet-sdk-*-linux-riscv64.tar.gz*"
