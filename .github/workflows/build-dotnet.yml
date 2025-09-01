@@ -15,6 +15,7 @@ jobs:
         SDK_VERSION: 8.0.101-servicing.23580.21
         ASPNETCORE_VERSION: 8.0.1-servicing.23580.8
         ROOTFS_DIR: /crossrootfs/riscv64
+        DOTNET_SYSTEM_NET_DISABLEIPV6: 1
       volumes:
         - ${{ github.workspace }}/output:${{ github.workspace }}/output
         
