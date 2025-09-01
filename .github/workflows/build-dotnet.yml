@@ -4,7 +4,7 @@ on: [workflow_dispatch, pull_request, push]
 
 jobs:
   run:
-    runs-on: "lynx"
+    runs-on: "CVM1"
     container:
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-cross-riscv64
       env:
@@ -19,10 +19,6 @@ jobs:
         - ${{ github.workspace }}/output:${{ github.workspace }}/output
         
     steps:
-    - name: Disable IPv6 inside container (for containerized hosts)
-      run: |
-        echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-        echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
     - name: Verify DNS resolution order
       run: getent ahosts pkgs.dev.azure.com
     - name: Network Debugging
