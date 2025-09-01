@@ -19,6 +19,8 @@ jobs:
         - ${{ github.workspace }}/output:${{ github.workspace }}/output
         
     steps:
+    - name: Verify DNS resolution order
+      run: getent ahosts pkgs.dev.azure.com
     - name: Network Debugging
       run: |
         #!/bin/bash
