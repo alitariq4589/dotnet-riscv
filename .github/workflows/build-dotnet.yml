@@ -20,48 +20,6 @@ jobs:
         - ${{ github.workspace }}/output:${{ github.workspace }}/output
         
     steps:
-    - name: Verify DNS resolution order
-      run: getent ahosts pkgs.dev.azure.com
-    - name: Network Debugging
-      run: |
-        #!/bin/bash
-        set -ex
-
-        # 1. Check basic internet connectivity
-        echo "--- Pinging google.com ---"
-        ping -c 3 google.com || true
-
-        # 2. Check connectivity to the Azure DevOps feed URL
-        echo "--- Pinging pkgs.dev.azure.com ---"
-        ping -c 3 pkgs.dev.azure.com || true
-
-        # 3. Check DNS Resolution for the feed URL
-        echo "--- Checking DNS resolution for pkgs.dev.azure.com ---"
-        # The 'nslookup' command might not be in the base image. Let's try 'curl'
-        # with verbose output to see where it fails.
-        curl -v --head https://pkgs.dev.azure.com || true
-
-        # 4. Try to download a small part of the package URL
-        # We use a public part of the URL to see if we can even reach the server.
-        echo "--- Attempting a curl on the package feed URL ---"
-        curl -I --max-time 30 --connect-timeout 10 https://pkgs.dev.azure.com/dnceng/9ee6d478-d288-47f7-aacc-f6e6d082ae6d/_packaging/d1622942-d16f-48e5-bc83-96f4539e7601/nuget/v3/flat2/microsoft.codeanalysis.csharp.workspaces/4.8.0-7.23566.2/microsoft.codeanalysis.csharp.workspaces.4.8.0-7.23566.2.nupkg || true
-
-        # 5. Check all environment variables related to proxies
-        echo "--- Checking environment variables for proxies ---"
-        env | grep -i proxy || true
-
-        # 6. Check NuGet configuration for feeds and timeouts
-        echo "--- Checking effective NuGet configuration ---"
-        # The 'dotnet' CLI needs to be available in the path for this to work.
-        # This will show you all registered NuGet package sources.
-        dotnet nuget list source || true
-        # This will clear the local cache, which can sometimes fix issues.
-        echo "--- Clearing NuGet cache ---"
-        dotnet nuget locals all --clear || true
-        
-        # 7. Check the /etc/resolv.conf file for DNS configuration
-        echo "--- Checking DNS configuration file ---"
-        cat /etc/resolv.conf || true
     - name: Clone repositories
       run: |
         rm -rf runtime aspnetcore sdk installer
