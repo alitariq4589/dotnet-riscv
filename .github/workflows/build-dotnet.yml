@@ -60,8 +60,6 @@ jobs:
        #!/bin/bash
         set -x
         curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg
-
-        # Add the repository source to a new file, referencing the new keyring file
         echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/kitware.list
         apt-get update
         apt-get install -y crossbuild-essential-riscv64 clang clang-18 libunwind8-dev
@@ -75,8 +73,8 @@ jobs:
         mkdir -p ${OUTPUTDIR}
 
         cd runtime
-        # Add flags to skip runtime tests restore which needs linux-riscv64 app host
-        ./build.sh --ci -c Release --cross --arch riscv64 /p:SkipTests=true
+        # Build only clr and libs subsets, no tests
+        ./build.sh --ci -c Release --cross --arch riscv64 --subset clr+libs /p:BuildTestsOnlyOnTargetArch=true
         
         cp artifacts/packages/Release/Shipping/Microsoft.NETCore.App.Host.linux-riscv64.*.nupkg ${PACKAGESDIR}
         cp artifacts/packages/Release/Shipping/Microsoft.NETCore.App.Runtime.linux-riscv64.*.nupkg ${PACKAGESDIR}
@@ -138,7 +136,6 @@ jobs:
     - name: Create or push to tag
       run: |
         TAG=${{ steps.get-version.outputs.tag_name }}
-
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
