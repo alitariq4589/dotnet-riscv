@@ -1,10 +1,21 @@
 name: Build .NET SDK
 
-on: [workflow_dispatch, pull_request, push]
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
 
 jobs:
-  run:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: "CVM1"
+    permissions:
+      contents: write
+    outputs:
+      tag_name: ${{ steps.get-version.outputs.tag_name }}
+      release_name: ${{ steps.get-version.outputs.release_name }}
+      asset_name: ${{ steps.get-version.outputs.asset_name }}
+      asset_path: ${{ steps.get-version.outputs.asset_path }}
+      
     container:
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-cross-riscv64
       env:
@@ -20,6 +31,22 @@ jobs:
         - ${{ github.workspace }}/output:${{ github.workspace }}/output
         
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set version outputs
+      id: get-version
+      run: |
+        SDK_VERSION="8.0.416"
+        TAG_NAME="v${SDK_VERSION}"
+        ASSET_NAME="dotnet-sdk-${SDK_VERSION}-linux-riscv64.tar.gz"
+        ASSET_PATH="${OUTPUTDIR}/${ASSET_NAME}"
+        
+        echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+        echo "release_name=.NET SDK ${SDK_VERSION} RISC-V" >> $GITHUB_OUTPUT
+        echo "asset_name=$ASSET_NAME" >> $GITHUB_OUTPUT
+        echo "asset_path=$ASSET_PATH" >> $GITHUB_OUTPUT
+
     - name: Clone repositories
       run: |
         rm -rf runtime aspnetcore sdk installer
@@ -100,16 +127,32 @@ jobs:
         cp artifacts/packages/Release/Shipping/dotnet-sdk-*-linux-riscv64.tar.gz ${OUTPUTDIR}
         cp artifacts/packages/Release/Shipping/dotnet-sdk-*-linux-riscv64.tar.gz.sha512 ${OUTPUTDIR}
 
-    - name: Upload .NET
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: dotnet-sdk-linux-riscv64
-        path: "${{ github.workspace }}/output/dotnet-sdk-*-linux-riscv64.tar.gz*"
+        name: ${{ steps.get-version.outputs.asset_name }}
+        path: ${{ steps.get-version.outputs.asset_path }}
+
+    - name: Create or push to tag
+      run: |
+        TAG=${{ steps.get-version.outputs.tag_name }}
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+          echo "✅ Tag $TAG already exists. Skipping tag creation." 
+        else
+          echo "🆕 Tag $TAG does not exist. Creating and pushing..."
+          git tag "$TAG"
+          git push origin "$TAG"
+        fi
     
     - name: Release
       uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
       with:
+        tag_name: ${{ steps.get-version.outputs.tag_name }}
+        name: ${{ steps.get-version.outputs.release_name }}
         files: |
-          ${{ github.workspace }}/output/dotnet-sdk-*.tar.gz*
-          ${{ github.workspace }}/packages/*.nupkg
+          ${{ steps.get-version.outputs.asset_path }}
+          ${{ steps.get-version.outputs.asset_path }}.sha512
