@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: "CVM1"
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     outputs:
