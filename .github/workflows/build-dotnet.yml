@@ -77,8 +77,8 @@ jobs:
         # Build clr and libs first
         ./build.sh --ci -c Release --cross --arch riscv64 --subset clr+libs
         
-        # Then build only product packs (not test packs)
-        ./build.sh --ci -c Release --cross --arch riscv64 --subset packs.product
+        # Then build only product packs without restoring
+        ./build.sh --ci -c Release --cross --arch riscv64 --subset packs.product --skip-restore
         
         cp artifacts/packages/Release/Shipping/Microsoft.NETCore.App.Host.linux-riscv64.*.nupkg ${PACKAGESDIR}
         cp artifacts/packages/Release/Shipping/Microsoft.NETCore.App.Runtime.linux-riscv64.*.nupkg ${PACKAGESDIR}
